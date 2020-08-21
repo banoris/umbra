@@ -23,12 +23,11 @@ class EnvEventHandler():
     def build_calls(self, events):
         calls = {}
 
-        for event_id, event_args in events.items():
-            params = event_args.get('params', {})
-            env_event = EnvEvent(self.address, self.wflow_id, params['command'], params['args'])
+        for event in events:
+            ev_id = event.get("id")
+            env_event = EnvEvent(self.address, self.wflow_id, event)
             action_call = env_event.call_scenario
-            action_sched = params.get('schedule', {})
-            calls[event_id] = (action_call, action_sched)
+            calls[ev_id] = (action_call, event.get("schedule"))
 
         return calls
 
@@ -37,10 +36,9 @@ class EnvEventHandler():
         results = await self.handler.run(calls)
 
 class EnvEvent():
-    def __init__(self, address, wflow_id, command, wflow_scenario):
+    def __init__(self, address, wflow_id, wflow_scenario):
         self.address = address
         self.wflow_id = wflow_id
-        self.command = command
         self.wflow_scenario = wflow_scenario
 
     def parse_bytes(self, msg):
@@ -63,9 +61,9 @@ class EnvEvent():
 
     async def call_scenario(self):
         logger.debug(f"START call_scenario: {self.wflow_scenario}")
-
+        command = self.wflow_scenario.get("command")
         self.wflow_scenario = self.serialize_bytes(self.wflow_scenario)
-        deploy = Workflow(id=self.wflow_id, workflow=self.command, scenario=self.wflow_scenario)
+        deploy = Workflow(id=self.wflow_id, workflow=command, scenario=self.wflow_scenario)
         deploy.timestamp.FromDatetime(datetime.now())
 
         host, port = self.address.split(":")

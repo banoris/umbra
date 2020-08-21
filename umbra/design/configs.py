@@ -1495,7 +1495,7 @@ class IrohaTopology(Topology):
         self.network_mode = "umbra"
 
 
-class Events:
+class EventsFabric:
     def __init__(self):
         self._ids = 1
         self._events = {}
@@ -1517,7 +1517,7 @@ class Events:
     def parse(self, data):
         self._events = data
 
-class EventsV2:
+class EventsOthers:
     def __init__(self):
         self._ev_id = 1;
         self._events = defaultdict(lambda: [])
@@ -1558,30 +1558,36 @@ class Scenario:
         self.id = id
         self.entrypoint = entrypoint
         self.folder = folder
-        self.topology = None       
-        self.events = Events()
-        self.eventsv2 = EventsV2()
+        self.topology = None
+        # ideally, we should have a generic Event class for all kinds of
+        # event type: Fabric, Iroha, environment, agent, monitor, etc.
+        # To achieve that, all events should use the umbra/common/scheduler.py
+        # Currently, FabricEvents (broker/plugin/fabric.py) has custom scheduler
+        self.events_fabric = EventsFabric()
+        self.events_others = EventsOthers()
 
     def parse(self, data):
         topo = Topology(None)
         ack = topo.parse(data.get("topology", {}))
         if ack:
             self.topology = topo
-            self.events.parse(data.get("events", {}))
-            self.eventsv2.parse(data.get("eventsv2", {}))
+            self.events_fabric.parse(data.get("events_fabric", {}))
+            self.events_others.parse(data.get("events_others", {}))
             self.name = data.get("id", None)
             self.entrypoint = data.get("entrypoint", None)
             return True
         return False
 
-    def add_event(self, when, category, params):
-        self.events.add(when, category, params)
+    def add_event_fabric(self, when, category, params):
+        self.events_fabric.add(when, category, params)
 
-    def add_event_v2(self, when, category, ev_args):
+    def add_event_others(self, when, category, ev_args):
         """
-        category: fabric | environment | agent | monitor
+        Arguments:
+            when: run the event at ith-second
+            category: environment | agent | monitor
         """
-        self.eventsv2.add(when, category, ev_args)
+        self.events_others.add(when, category, ev_args)
 
     def set_topology(self, topology):
         self.topology = topology
@@ -1591,14 +1597,14 @@ class Scenario:
 
     def dump(self):
         topo_built = self.topology.build()
-        events_built = self.events.build()
-        eventsv2_built = self.eventsv2.build()
+        events_fabric_built = self.events_fabric.build()
+        events_others_built = self.events_others.build()
         scenario = {
             "id": self.id,
             "entrypoint": self.entrypoint,
             "topology": topo_built,
-            "events": events_built,
-            "eventsv2": eventsv2_built
+            "events_fabric": events_fabric_built,
+            "events_others": events_others_built
         }
         return scenario
 

@@ -46,16 +46,16 @@ class Playground:
                 elif cmd == "stop":
                     reply = self.stop()
                 elif cmd == "environment_event":
-                    node_name = scenario.get('node_name', None)
+                    target_node = scenario.get('target_node', None)
                     action = scenario.get('action', None)
                     action_args = scenario.get('action_args', None)
 
                     if action == "kill_container":
-                        reply = self.kill_container(node_name)
+                        reply = self.kill_container(target_node)
                     elif action == "update_cpu_limit":
-                        reply= self.update_cpu_limit(node_name, action_args)
+                        reply= self.update_cpu_limit(target_node, action_args)
                     elif action == "update_memory_limit":
-                        reply= self.update_memory_limit(node_name, action_args)
+                        reply= self.update_memory_limit(target_node, action_args)
                     elif action == "update_link":
                         reply= self.update_link(action_args)
                     else:
@@ -101,9 +101,9 @@ class Playground:
         }
         return ack
 
-    def kill_container(self, node_name):
-        ok, err_msg = self.exp_topo.kill_container(node_name)
-        logger.info("Terminating container name: %s", node_name)
+    def kill_container(self, target_node):
+        ok, err_msg = self.exp_topo.kill_container(target_node)
+        logger.info("Terminating container name: %s", target_node)
 
         ack = {
             'ok': str(ok),
@@ -115,15 +115,15 @@ class Playground:
 
         return ack
 
-    def update_cpu_limit(self, node_name, params):
+    def update_cpu_limit(self, target_node, params):
         cpu_quota = params.get('cpu_quota', -1)
         cpu_period = params.get('cpu_period', -1)
         cpu_shares = params.get('cpu_shares', -1)
         cores = params.get('cores', None)
 
-        ok, err_msg = self.exp_topo.update_cpu_limit(node_name,
+        ok, err_msg = self.exp_topo.update_cpu_limit(target_node,
             cpu_quota, cpu_period,cpu_shares, cores)
-        logger.info("Updating cpu limit of %s with %s", node_name, params)
+        logger.info("Updating cpu limit of %s with %s", target_node, params)
 
         ack = {
             'ok': str(ok),
@@ -135,13 +135,13 @@ class Playground:
 
         return ack
 
-    def update_memory_limit(self, node_name, params):
+    def update_memory_limit(self, target_node, params):
         mem_limit = params.get('mem_limit', -1)
         memswap_limit = params.get('memswap_limit', -1)
 
-        ok, err_msg = self.exp_topo.update_memory_limit(node_name,
+        ok, err_msg = self.exp_topo.update_memory_limit(target_node,
             mem_limit, memswap_limit)
-        logger.info("Updating mem limit of %s with %s", node_name, params)
+        logger.info("Updating mem limit of %s with %s", target_node, params)
 
         ack = {
             'ok': str(ok),

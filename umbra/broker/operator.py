@@ -135,7 +135,7 @@ class Operator:
         self.topology = topo
         self.config_plugins()
 
-        events = scenario.get("events")
+        events = scenario.get("events_fabric")
         self.schedule_plugins(events)
 
     def config_env_event(self, wflow_id):
@@ -144,15 +144,12 @@ class Operator:
 
     async def call_env_event(self, wflow_id, scenario):
         self.config_env_event(wflow_id)
-        events = scenario.get("events")
+        env_events = scenario.get("events_others").get("environment")
 
-        # filter out non "environment" type events
-        env_events = {key: value for key, value in events.items()
-                        if value['category'] == "environment"}
         await self.events_env.handle(env_events)
 
     async def call_agent_event(self, scenario):
-        agent_events = scenario.get("eventsv2").get("agent")
+        agent_events = scenario.get("events_others").get("agent")
         # '[0]' because we assume only single agent exist, thus all
         # events should have the same "agent_name"
         agent_name = agent_events[0].get("agent_name")
@@ -178,7 +175,7 @@ class Operator:
         channel.close()
 
     async def call_monitor_event(self, scenario):
-        monitor_events = scenario.get("eventsv2").get("monitor")
+        monitor_events = scenario.get("events_others").get("monitor")
 
         # extract all the actions from monitor_events to
         # construct the Instruction message
