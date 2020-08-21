@@ -51,11 +51,12 @@ reset() {
         kill_process_tree 1 $$
     fi
 
-    echo_bold "Cleaning logs"
-    files=(./logs/*)
-    if [ ${#files[@]} -gt 0 ]; then
-        rm ./logs/*
-    fi 
+    # NOTE: save the logs instead below
+    # echo_bold "Cleaning logs"
+    # files=(./logs/*)
+    # if [ ${#files[@]} -gt 0 ]; then
+    #     rm ./logs/*
+    # fi
 
     scenarioPID=`ps -o pid --no-headers -C umbra-scenario`
     brokerPID=`ps -o pid --no-headers -C umbra-broker`
@@ -85,6 +86,11 @@ reset() {
         echo_bold "Stopping examples script ${examplesPID}"
         kill -9 $examplesPID &> /dev/null
     fi
+
+    timenow=`date +"%G_%m_%d_%H-%M-%S"`
+    echo_bold "Saving logs at ./logs/${timenow}"
+    mkdir ./logs/${timenow}
+    mv ./logs/*.log ./logs/${timenow}
 }
 
 function clearContainers() {
