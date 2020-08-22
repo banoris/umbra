@@ -380,7 +380,32 @@ class Topology(Graph):
         logger.info("links:")
         for src, dst, data in self.graph.edges(data=True):
             logger.info(f"  src = {src}, dst = {dst}, data = {data}", data)
-        
+
+    def to_dot(self):
+        """
+        Parse networkx graph into Graphiz Dot format
+
+        Return a string in Graphviz Dot format showing the
+        connections between all the nodes in the Topology
+        """
+        dot_fmt = "strict graph  {"
+
+        # Populate list of nodes
+        for n in self.graph.nodes():
+            dot_fmt += f"\"{n}\";"
+
+        # Populate the connection between nodes
+        for src, dst, data in self.graph.edges(data=True):
+            # TODO: if intf not UP, skip
+            # if data.get("intf_status", None) != "UP":
+            #     continue
+
+            dot_fmt += f"\"{src}\" -- \"{dst}\";"
+
+        dot_fmt += "}"
+
+        return dot_fmt
+
     def build(self):
         nodes = []
         links = []

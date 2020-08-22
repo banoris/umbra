@@ -451,6 +451,7 @@ def build_simple_fabric_cfg():
 
     # Print topology
     fab_topo.show()
+    logging.debug(fab_topo.to_dot())
 
 def builds():
     build_simple_fabric_cfg()
