@@ -133,6 +133,7 @@ class Operator:
         topo.fill_config(info_topology)
         topo.fill_hosts_config(info_hosts)
         self.topology = topo
+        self.topology.show() # Don't forget to REMOVEME
         self.config_plugins()
 
         events = scenario.get("events_fabric")
@@ -146,7 +147,8 @@ class Operator:
         self.config_env_event(wflow_id)
         env_events = scenario.get("events_others").get("environment")
 
-        await self.events_env.handle(env_events)
+        result = await self.events_env.handle(env_events)
+        return result
 
     async def call_agent_event(self, scenario):
         agent_events = scenario.get("events_others").get("agent")

@@ -318,6 +318,7 @@ class Environment:
                     "name": link_name,
                     "src": link.intf1.node.name,
                     "dst": link.intf2.node.name,
+                    "intf_isup": link.intf1.isUp() and link.intf2.isUp(),
                     "src-port": link.intf1.name,
                     "dst-port": link.intf2.name,
                 }

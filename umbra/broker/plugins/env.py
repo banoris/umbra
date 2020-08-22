@@ -34,6 +34,7 @@ class EnvEventHandler():
     async def handle(self, events):
         calls = self.build_calls(events)
         results = await self.handler.run(calls)
+        return results
 
 class EnvEvent():
     def __init__(self, address, wflow_id, wflow_scenario):
