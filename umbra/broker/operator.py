@@ -134,6 +134,7 @@ class Operator:
         topo.fill_hosts_config(info_hosts)
         self.topology = topo
         self.topology.show() # Don't forget to REMOVEME
+        logger.debug("DOT: %s", self.topology.to_dot())
         self.config_plugins()
 
         events = scenario.get("events_fabric")
@@ -168,6 +169,7 @@ class Operator:
             topo.fill_hosts_config(updated_host)
             self.topology = topo
             self.topology.show() # REMOVEME
+            logger.debug("DOT: %s", self.topology.to_dot())
 
         return result
 

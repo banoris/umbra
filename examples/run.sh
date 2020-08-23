@@ -20,6 +20,7 @@ function printHelp() {
     echo "    <mode> - one of 'start' or 'stop'"
     echo "      - 'start' - bring up the network specified in the <config file path>"
     echo "      - 'stop' - stop and clear the started setup"
+    echo "          -r run post-processing script to generate report after setup teardown"
     echo "    -c <config file path> - filepath of a config created using umbra-configs"
     echo "    -d enable debug mode to print more logs"
     echo "  run.sh -h (print this message)"
@@ -87,10 +88,6 @@ reset() {
         kill -9 $examplesPID &> /dev/null
     fi
 
-    timenow=`date +"%G_%m_%d_%H-%M-%S"`
-    echo_bold "Saving logs at ./logs/${timenow}"
-    mkdir ./logs/${timenow}
-    mv ./logs/*.log ./logs/${timenow}
 }
 
 function clearContainers() {
@@ -103,7 +100,7 @@ function clearContainers() {
 }
 
 
-while getopts ":h:c:d" opt; do
+while getopts ":hc:dr" opt; do
   case "${opt}" in
     h | \?)
         printHelp
@@ -114,6 +111,9 @@ while getopts ":h:c:d" opt; do
         ;;
     d)
         DEBUG='--debug'
+        ;;
+    r)
+        REPORT=1
         ;;
   esac
 done
@@ -178,6 +178,17 @@ case "$COMMAND" in
     stop)
         echo_bold "-> Stop"
         reset 1
+
+        if [[ ! -z "${REPORT}" ]]; then
+            echo_bold "-> Generate report to ./logs/<date>/REPORT.log"
+            python3 report.py
+        fi
+
+        # save log file
+        timenow=`date +"%G_%m_%d_%H-%M-%S"`
+        echo_bold "-> Saving logs at ./logs/${timenow}"
+        mkdir ./logs/${timenow}
+        mv ./logs/*.log ./logs/${timenow}
 
         echo_bold "-> Cleaning mininet"
         sudo mn -c

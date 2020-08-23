@@ -396,11 +396,8 @@ class Topology(Graph):
 
         # Populate the connection between nodes
         for src, dst, data in self.graph.edges(data=True):
-            # TODO: if intf not UP, skip
-            # if data.get("intf_status", None) != "UP":
-            #     continue
-
-            dot_fmt += f"\"{src}\" -- \"{dst}\";"
+            if data.get("deploy", {}).get("intf_isup", True):
+                dot_fmt += f"\"{src}\" -- \"{dst}\";"
 
         dot_fmt += "}"
 
