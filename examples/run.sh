@@ -21,6 +21,7 @@ function printHelp() {
     echo "      - 'start' - bring up the network specified in the <config file path>"
     echo "      - 'stop' - stop and clear the started setup"
     echo "          -r run post-processing script to generate report after setup teardown"
+    echo "             NOTE: -r requires simulation in debug mode. E.g. run.sh start ___ -d"
     echo "    -c <config file path> - filepath of a config created using umbra-configs"
     echo "    -d enable debug mode to print more logs"
     echo "  run.sh -h (print this message)"
@@ -52,13 +53,6 @@ reset() {
         kill_process_tree 1 $$
     fi
 
-    # NOTE: save the logs instead below
-    # echo_bold "Cleaning logs"
-    # files=(./logs/*)
-    # if [ ${#files[@]} -gt 0 ]; then
-    #     rm ./logs/*
-    # fi
-
     scenarioPID=`ps -o pid --no-headers -C umbra-scenario`
     brokerPID=`ps -o pid --no-headers -C umbra-broker`
     monitorPID=`ps -o pid --no-headers -C umbra-monitor`
@@ -88,6 +82,22 @@ reset() {
         kill -9 $examplesPID &> /dev/null
     fi
 
+    # generate report and save all logs if '-r', else delete logs
+    if [[ ! -z "${REPORT}" ]]; then
+        timenow=`date +"%G_%m_%d_%H-%M-%S"`
+        echo_bold "Generate report to ./logs/${timenow}/REPORT.log"
+        python3 report.py
+        # save log file
+        echo_bold "-> Saving logs at ./logs/${timenow}"
+        mkdir ./logs/${timenow}
+        mv ./logs/*.log ./logs/${timenow}
+    else
+        echo_bold "Cleaning logs"
+        files=(./logs/*)
+        if [ ${#files[@]} -gt 0 ]; then
+            rm ./logs/*
+        fi
+    fi
 }
 
 function clearContainers() {
@@ -178,17 +188,6 @@ case "$COMMAND" in
     stop)
         echo_bold "-> Stop"
         reset 1
-
-        if [[ ! -z "${REPORT}" ]]; then
-            echo_bold "-> Generate report to ./logs/<date>/REPORT.log"
-            python3 report.py
-        fi
-
-        # save log file
-        timenow=`date +"%G_%m_%d_%H-%M-%S"`
-        echo_bold "-> Saving logs at ./logs/${timenow}"
-        mkdir ./logs/${timenow}
-        mv ./logs/*.log ./logs/${timenow}
 
         echo_bold "-> Cleaning mininet"
         sudo mn -c

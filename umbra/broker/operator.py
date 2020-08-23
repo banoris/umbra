@@ -133,7 +133,6 @@ class Operator:
         topo.fill_config(info_topology)
         topo.fill_hosts_config(info_hosts)
         self.topology = topo
-        self.topology.show() # Don't forget to REMOVEME
         logger.debug("DOT: %s", self.topology.to_dot())
         self.config_plugins()
 
@@ -145,6 +144,7 @@ class Operator:
         self.plugins["environment"] = self.events_env
 
     async def call_env_event(self, wflow_id, scenario):
+        logger.info("Scheduling environment events...")
         self.config_env_event(wflow_id)
         env_events = scenario.get("events_others").get("environment")
 
@@ -156,9 +156,12 @@ class Operator:
             if event["command"] == "current_topology":
                 curr_topo_id = event["id"]
 
-
         result = await self.events_env.handle(env_events)
-        logger.info(f"ASD: result={result}") # REMOVEME
+
+        # BUG: what if you have > 1 current_topology events? Above
+        # `await` will block until you receive results from all tasks.
+        # Correct behavior would be to straightaway update topology
+        # after querying topology from umbra-scenario
 
         # update the topology with the newly received topology
         if curr_topo_id:
@@ -168,12 +171,12 @@ class Operator:
             topo.fill_config(updated_topo)
             topo.fill_hosts_config(updated_host)
             self.topology = topo
-            self.topology.show() # REMOVEME
             logger.debug("DOT: %s", self.topology.to_dot())
 
         return result
 
     async def call_agent_event(self, scenario):
+        logger.info("Scheduling agent events...")
         agent_events = scenario.get("events_others").get("agent")
         # '[0]' because we assume only single agent exist, thus all
         # events should have the same "agent_name"
@@ -200,6 +203,7 @@ class Operator:
         channel.close()
 
     async def call_monitor_event(self, scenario):
+        logger.info("Scheduling monitor events...")
         monitor_events = scenario.get("events_others").get("monitor")
 
         # extract all the actions from monitor_events to
@@ -247,9 +251,11 @@ class Operator:
                 status_bytes = self.serialize_bytes(status_info)
                 report.status = status_bytes
 
-                await self.call_agent_event(scenario)
-                await self.call_monitor_event(scenario)
-                await self.call_env_event(request.id, scenario)
+                await asyncio.gather(
+                    self.call_agent_event(scenario),
+                    self.call_monitor_event(scenario),
+                    self.call_env_event(request.id, scenario)
+                )
 
             else:
                 ack,topo_info = await self.call_scenario(request.id, "stop", {}, address)

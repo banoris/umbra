@@ -403,7 +403,7 @@ def build_simple_fabric_cfg():
         },
     }
 
-    ev_agent_v2 = {
+    ev_agent_ping_peer0org1 = {
         "agent_name": agent_name,
         "id": "100",
         "actions": [
@@ -430,7 +430,7 @@ def build_simple_fabric_cfg():
         ],
     }
 
-    ev_monitor_v2 = {
+    ev_monitor_container_peer0org1 = {
         "id": "101",
         "actions": [
             {
@@ -464,15 +464,15 @@ def build_simple_fabric_cfg():
 
     scenario.add_event_fabric("0", "fabric", ev_info_channels)
     scenario.add_event_fabric("1", "fabric", ev_create_channel)
-    scenario.add_event_others(1, "agent", ev_agent_v2)
-    scenario.add_event_others(3, "monitor", ev_monitor_v2)
+    scenario.add_event_others(1, "agent", ev_agent_ping_peer0org1)
+    scenario.add_event_others(3, "monitor", ev_monitor_container_peer0org1)
     # scenario.add_event_others(3, "environment", ev_kill_container_peer0_org1)
     # scenario.add_event_others(4, "environment", ev_kill_container_peer0_org2)
     # scenario.add_event_others(6, "environment", ev_update_link_res)
-    # scenario.add_event_others(1, "environment", ev_update_link_peer1_org1_downlink)
+    # scenario.add_event_others(3, "environment", ev_update_link_peer1_org1_downlink)
     # scenario.add_event_others(3, "environment", ev_update_link_peer1_org1_uplink)
-    scenario.add_event_others(1, "environment", ev_update_link_orderer_down)
-    scenario.add_event_others(2, "environment", ev_update_link_orderer_up)
+    # scenario.add_event_others(1, "environment", ev_update_link_orderer_down)
+    # scenario.add_event_others(2, "environment", ev_update_link_orderer_up)
     scenario.add_event_others(1, "environment", ev_mem_limit_peer1_org1)
     scenario.add_event_others(1, "environment", ev_cpu_limit_peer1_org2)
     scenario.add_event_others(3, "environment", ev_get_topology)
@@ -499,7 +499,6 @@ def build_simple_fabric_cfg():
 
     # Print topology
     fab_topo.show()
-    logging.debug(fab_topo.to_dot())
 
 def builds():
     build_simple_fabric_cfg()
