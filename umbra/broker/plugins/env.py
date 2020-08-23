@@ -39,6 +39,7 @@ class EnvEventHandler():
 class EnvEvent():
     def __init__(self, address, wflow_id, wflow_scenario):
         self.address = address
+        self.wflow_cmd = wflow_scenario.get("command", "")
         self.wflow_id = wflow_id
         self.wflow_scenario = wflow_scenario
 
@@ -62,9 +63,9 @@ class EnvEvent():
 
     async def call_scenario(self):
         logger.debug(f"START call_scenario: {self.wflow_scenario}")
-        command = self.wflow_scenario.get("command")
         self.wflow_scenario = self.serialize_bytes(self.wflow_scenario)
-        deploy = Workflow(id=self.wflow_id, workflow=command, scenario=self.wflow_scenario)
+        deploy = Workflow(id=self.wflow_id, command=self.wflow_cmd,
+                            scenario=self.wflow_scenario)
         deploy.timestamp.FromDatetime(datetime.now())
 
         host, port = self.address.split(":")

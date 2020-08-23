@@ -79,7 +79,7 @@ class Operator:
         logger.info(f"Deploying Scenario - {command}")
 
         scenario = self.serialize_bytes(topology)
-        deploy = Workflow(id=test, workflow=command, scenario=scenario)
+        deploy = Workflow(id=test, command=command, scenario=scenario)
         deploy.timestamp.FromDatetime(datetime.now())
         
         host, port = address.split(":")
@@ -147,7 +147,28 @@ class Operator:
         self.config_env_event(wflow_id)
         env_events = scenario.get("events_others").get("environment")
 
+        # Any better way to get the id of event=current_topology?
+        # Need it as the key to the 'result' dict which has
+        # the response of the query for current topology
+        curr_topo_id = None
+        for event in env_events:
+            if event["command"] == "current_topology":
+                curr_topo_id = event["id"]
+
+
         result = await self.events_env.handle(env_events)
+        logger.info(f"ASD: result={result}") # REMOVEME
+
+        # update the topology with the newly received topology
+        if curr_topo_id:
+            topo = self.scenario.get_topology()
+            updated_topo = result[curr_topo_id][1].get("topology")
+            updated_host = result[curr_topo_id][1].get("hosts")
+            topo.fill_config(updated_topo)
+            topo.fill_hosts_config(updated_host)
+            self.topology = topo
+            self.topology.show() # REMOVEME
+
         return result
 
     async def call_agent_event(self, scenario):
@@ -232,4 +253,3 @@ class Operator:
                 ack,topo_info = await self.call_scenario(request.id, "stop", {}, address)
 
         return report
-

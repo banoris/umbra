@@ -60,6 +60,8 @@ class Playground:
                         reply= self.update_link(action_args)
                     else:
                         reply = {}
+                elif cmd == "current_topology":
+                    reply = self.get_current_topology()
                 else:
                     reply = {}
 
@@ -99,6 +101,21 @@ class Playground:
             'ok': str(ack),
             'msg': msg, 
         }
+        return ack
+
+    def get_current_topology(self):
+        ok, info = "True", {}
+        if self.exp_topo:
+            ok, info = self.exp_topo.get_current_topology()
+
+        ack = {
+            'ok': str(ok),
+            'msg': {
+                'info': info,
+                'error': "",
+            }
+        }
+
         return ack
 
     def kill_container(self, target_node):
@@ -215,8 +232,8 @@ class Scenario(ScenarioBase):
                 logger.debug("Stopping running playground")
                 await self.call("stop", None)
                 self.stop()
-            
-            self.start()            
+
+            self.start()
             reply = await self.call(command, scenario)
 
         elif command == "stop":
@@ -224,9 +241,11 @@ class Scenario(ScenarioBase):
             self.stop()
         elif command == "environment_event":
             reply = await self.call(command, scenario)
+        elif command == "current_topology":
+            reply = await self.call(command, scenario)
         else:
-            logger.debug(f"Unkown playground command {command}")
-            return False, {}
+            logger.warn(f"Unkown playground command {command}")
+            return "False", {}
        
         ack, info = reply.get("ok"), reply.get("msg")
         return ack, info
@@ -259,13 +278,30 @@ class Scenario(ScenarioBase):
         
         deploy_dict = json_format.MessageToDict(deploy, preserving_proto_field_name=True)
         id = deploy_dict.get("id")
-        command = deploy_dict.get("workflow")
+        command = deploy_dict.get("command")
 
         ok, msg = await self.play(id, command, scenario)
-        logger.debug(f"Playground msg: {msg}")
+        logger.debug(f"command = {command}, Playground msg = {msg}")
         
         error = msg.get("error")
         built_info = self.serialize_bytes(msg.get("info"))
 
         built = Status(id=id, ok=ok, error=error, info=built_info)
         await stream.send_message(built)
+
+    async def CurrentTopology(self, stream):
+        wflow_raw = await stream.recv_message()
+        event = self.parse_bytes(wflow_raw.scenario)
+
+        wflow_dict = json_format.MessageToDict(wflow_raw, preserving_proto_field_name=True)
+        ev_id = wflow_dict.get("id")
+        command = wflow_dict.get("command")
+
+        ok, msg = await self.play(id, command, scenario)
+        logger.debug(f"command = {command}, Playground msg = {msg}")
+
+        error = msg.get("error")
+        topo_info = self.serialize_bytes(msg.get("info"))
+
+        reply = Status(id=ev_id, ok=ok, error=error, info=topo_info)
+        await stream.send_message(reply)

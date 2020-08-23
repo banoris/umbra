@@ -457,6 +457,11 @@ def build_simple_fabric_cfg():
 
     }
 
+    ev_get_topology = {
+        "command": "current_topology",
+    }
+
+
     scenario.add_event_fabric("0", "fabric", ev_info_channels)
     scenario.add_event_fabric("1", "fabric", ev_create_channel)
     scenario.add_event_others(1, "agent", ev_agent_v2)
@@ -466,10 +471,11 @@ def build_simple_fabric_cfg():
     # scenario.add_event_others(6, "environment", ev_update_link_res)
     # scenario.add_event_others(1, "environment", ev_update_link_peer1_org1_downlink)
     # scenario.add_event_others(3, "environment", ev_update_link_peer1_org1_uplink)
-    # scenario.add_event_others(1, "environment", ev_update_link_orderer_down)
+    scenario.add_event_others(1, "environment", ev_update_link_orderer_down)
     # scenario.add_event_others(3, "environment", ev_update_link_orderer_up)
     scenario.add_event_others(1, "environment", ev_mem_limit_peer1_org1)
     scenario.add_event_others(1, "environment", ev_cpu_limit_peer1_org2)
+    scenario.add_event_others(3, "environment", ev_get_topology)
 
     scenario.add_event_fabric("3", "fabric", ev_join_channel_org1)
     scenario.add_event_fabric("3", "fabric", ev_join_channel_org2)

@@ -343,8 +343,9 @@ class Environment:
         self._start_network()
         logger.info("Experiment running")
         
+        self.nodes_info = self.parse_info(self.net.hosts, "hosts")
         info = {
-            "hosts": self.nodes_info,
+            "hosts": self.nodes_info.get("hosts"),
             "topology": self.net_topo_info(),
         }
         return True, info
@@ -353,6 +354,15 @@ class Environment:
         if self.net:
             self.net.stop()
             logger.info("Stopped network: %r" % self.net)
+
+    def get_current_topology(self):
+        self.nodes_info = self.parse_info(self.net.hosts, "hosts")
+        info = {
+            "hosts": self.nodes_info.get("hosts"),
+            "topology": self.net_topo_info(),
+        }
+
+        return True, info
 
     def kill_container(self, node_name):
         err_msg = None
